@@ -1,9 +1,9 @@
 {
-	"name": "sunnysideup/ecommerce_product_variation",
+	"name": "sunnysideup/ecommerce_search",
 	"type": "silverstripe-module",
-	"description": "create product variations within e-commerce (e.g. if you have a sock you can now sell a red XL sock or a small blue sock).",
+	"description": "advanced search for e-commerce products.",
 	"homepage": "http://www.silverstripe-ecommerce.com",
-	"keywords": ["ecommerce", "e-commerce", "shop", "product variation","variation", "silverstripe", "sizes", "colours", "sub-types", "types"],
+	"keywords": ["ecommerce", "e-commerce", "shop", "cart", "search", "advanced search", "search products", "product search", "price search", "keyword search"],
 	"license": "Sunny Side Up (BSD-3-Clause and CUSTOM)",
 	"authors":[
 		{
@@ -14,10 +14,9 @@
 		}
 	],
 	"require":{
-		"sunnysideup/ecommerce": "dev-master",
-		"sunnysideup/dataobjectsorter": "dev-master"
+		"sunnysideup/ecommerce": "dev-master"
 	},
 	"extra": {
-		"installer-name": "ecommerce_product_variation"
+		"installer-name": "ecommerce_search"
 	}
 }

@@ -1,8 +1,8 @@
 
-E-commerce Product Variations
+E-commerce Search
 ================================================================================
 
-Create product variations within e-commerce (e.g. if you have a sock you can now sell a red XL sock or a small blue sock).
+Adds advanced search capabilities to a Silverstripe e-commerce application
 
 Developers
 -----------------------------------------------

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @description: Allows user to specifically search products
  **/
@@ -134,19 +135,27 @@ class ProductSearchForm extends Form {
 		$fields = new FieldList(
 			new TextField("Keyword",  _t("ProductSearchForm.KEYWORDS", "Keywords")),
 			new NumericField("MinimumPrice", _t("ProductSearchForm.MINIMUM_PRICE", "Minimum Price")),
-			new NumericField("MaximumPrice", _t("ProductSearchForm.MAXIMUM_PRICE", "Maximum Price")),
-			new CheckboxField("SearchOnlyFieldsInThisSection", _t("ProductSearchForm.ONLY_SHOW", "Only Show")." ".$nameOfProductsBeingSearched, true)
+			new NumericField("MaximumPrice", _t("ProductSearchForm.MAXIMUM_PRICE", "Maximum Price"))
 		);
 		$actions = new FieldList(
 			new FormAction('doProductSearchForm', 'Search')
 		);
-		parent::__construct($controller, $name, $fields, $actions, $requiredFields = null);
+		if($productsToSearch && count($productsToSearch)) {
+			$fields->push(
+				new CheckboxField("SearchOnlyFieldsInThisSection", _t("ProductSearchForm.ONLY_SHOW", "Only Show Results from")." <i>".$nameOfProductsBeingSearched."</i> "._t("ProductSearchForm.SECTION", "section"), true)
+			);
+		}
+		$requiredFields = array();
+		$validator = ProductSearchForm_Validator::create($requiredFields);
+		parent::__construct($controller, $name, $fields, $actions, $validator);
 		//extensions need to be set after __construct
 		if($this->extend('updateFields',$fields) !== null) {$this->setFields($fields);}
 		if($this->extend('updateActions',$actions) !== null) {$this->setActions($actions);}
 		if($this->extend('updateValidator',$requiredFields) !== null) {$this->setValidator($requiredFields);}
-		$oldData = Session::get("FormInfo.{$this->FormName()}.data");
+		$oldData = Session::get("FormInfo.".$this->FormName().".data");
 		if($oldData && (is_array($oldData) || is_object($oldData))) {
+			print_r($oldData);
+			die("AA");
 			$this->loadDataFrom($oldData);
 		}
 		$this->extend('updateProductSearchForm',$this);
@@ -212,7 +221,7 @@ class ProductSearchForm extends Form {
 
 						//find all keywords ...
 						$wordArray = array($keyword);
-						$words = explode(' ', trim(eregi_replace(' +', ' ', $keyword)));
+						$words = explode(' ', trim(preg_replace('!\s+!', ' ', $keyword)));
 						foreach($words as $word) {
 							$replacements = SearchReplacement::get()
 								->where("
@@ -232,7 +241,7 @@ class ProductSearchForm extends Form {
 						$searches = $this->getSearchArrays($wordArray, $fieldArray);
 						//we search exact matches first then other matches ...
 						foreach($searches as $search) {
-							$list2 = $baseList->where($wherePhrase);
+							$list2 = $baseList->where($search);
 							$count = $list2->count();
 							if($count == 1) {
 								return $this->controller->redirect($list2->First()->Link());
@@ -253,7 +262,7 @@ class ProductSearchForm extends Form {
 					if($this->resultArrayPos <= $this->maximumNumberOfResults) {
 						$searches = $this->getSearchArrays($wordArray);
 						foreach($searches as $search) {
-							$productGroups = ProductGroup::get()->where($wherePhrase);
+							$productGroups = ProductGroup::get()->where($search);
 							$count = $productGroups->count();
 							if($count == 1) {
 								return $this->controller->redirect($productGroups->First()->Link());
@@ -325,12 +334,12 @@ class ProductSearchForm extends Form {
 	protected function getSearchArrays($words, $fields = array("Title", "MenuTitle")){
 		//make three levels of search
 		$searches = array();
-		$wordsAsString = implode(trim(eregi_replace(' +', ' ', $words)));
+		$wordsAsString = trim(implode(" ", preg_replace('!\s+!', ' ', $words)));
 		foreach($fields as $field) {
 			$searches[0][] = "LOWER(\"$field\") = '$wordsAsString'"; // a) Exact match
 			$searches[1][] = "LOWER(\"$field\") = '%$wordsAsString%'"; // a) Full match with extra fluff
 		}
-		$searches[2][] = DB::getconn()->fullTextSearchSQL($fields, $words, $this->useBooleanSearch);
+		$searches[2][] = DB::getconn()->fullTextSearchSQL($fields, $wordsAsString, $this->useBooleanSearch);
 		$returnArray = array();
 		foreach($searches as $key => $search) {
 			$returnArray[$key] = implode(" OR ", $search);
@@ -338,19 +347,38 @@ class ProductSearchForm extends Form {
 		return $returnArray;
 	}
 
+	/**
+	 * saves the form into session
+	 * @param Array $data - data from form.
+	 */
+	public function saveDataToSession(){
+		$data = $this->getData();
+		Session::set("FormInfo.".$this->FormName().".data", $data);
+	}
 
 }
 
 class ProductSearchForm_Short extends ProductSearchForm {
-	function ShortFilterForm() {
-		$fields = new FieldList(
-			new TextField("KeywordQuick", "", Session::get("ProductFilter.Keyword"))
+
+	function __construct($controller, $name, $nameOfProductsBeingSearched = "", $productsToSearch = null) {
+		parent::__construct($controller, $name, $nameOfProductsBeingSearched, $productsToSearch);
+		$this->fields = new FieldList(
+			new TextField("Keyword", "")
 		);
-		$actions = new FieldList(
-			new FormAction('doFilterForm', 'Go')
+		$this->actions = new FieldList(
+			new FormAction('doProductSearchForm', 'Go')
 		);
-		$form = new Form($this, "FilterFormQuick", $fields, $actions);
-		return $form;
+	}
+
+}
+
+
+class ProductSearchForm_Validator extends RequiredFields{
+
+	function php($data){
+		die("AAAAAAAAAAAAAAA");
+		$this->form->saveDataToSession();
+		return parent::php($data);
 	}
 
 }

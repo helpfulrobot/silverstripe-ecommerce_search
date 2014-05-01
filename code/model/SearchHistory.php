@@ -14,7 +14,7 @@ class SearchHistory Extends DataObject {
 
 
 	function onBeforeWrite() {
-		$this->Title = trim(eregi_replace(" +", " ", $this->Title));
+		$this->Title = trim(preg_replace('!\s+!', ' ', $this->Title));
 		parent::onBeforeWrite();
 	}
 

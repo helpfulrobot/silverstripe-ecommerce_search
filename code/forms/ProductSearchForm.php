@@ -154,8 +154,6 @@ class ProductSearchForm extends Form {
 		if($this->extend('updateValidator',$requiredFields) !== null) {$this->setValidator($requiredFields);}
 		$oldData = Session::get("FormInfo.".$this->FormName().".data");
 		if($oldData && (is_array($oldData) || is_object($oldData))) {
-			print_r($oldData);
-			die("AA");
 			$this->loadDataFrom($oldData);
 		}
 		$this->extend('updateProductSearchForm',$this);
@@ -376,7 +374,6 @@ class ProductSearchForm_Short extends ProductSearchForm {
 class ProductSearchForm_Validator extends RequiredFields{
 
 	function php($data){
-		die("AAAAAAAAAAAAAAA");
 		$this->form->saveDataToSession();
 		return parent::php($data);
 	}
